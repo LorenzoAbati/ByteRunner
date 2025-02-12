@@ -4,6 +4,7 @@ let book = document.getElementById("book");
 
 let inital_speed = 20;
 let points_counter = 0;
+let score = 0;
 
 let boyIsMoving = false;
 let boy_speed = inital_speed;
@@ -16,13 +17,6 @@ var pageWidth = window.innerWidth - 70;
 setRandomPosition(boy);
 setRandomPosition(guard);
 setRandomPosition(book);
-
-// Add these variables at the top with your other variables
-let powerUpActive = false;
-let powerUpTimer = null;
-let dashAvailable = true;
-let dashCooldown = null;
-let score = 0;
 
 // Add these variables at the top
 let direction = { x: 0, y: 0 };
@@ -91,16 +85,43 @@ function showModal(message, isGameOver) {
 
     modalText.textContent = message;
     modal.style.display = 'flex';
+    
+    // Hide the buttons initially
+    continueBtn.style.display = 'none';
+    menuBtn.style.display = 'none';
 
-    continueBtn.onclick = () => {
-        modal.style.display = 'none';
-        restartGame();
-    };
-
-    menuBtn.onclick = () => {
-        modal.style.display = 'none';
-        backToMenu();
-    };
+    if (isGameOver) {
+        // Show both restart and menu buttons on game over
+        menuBtn.style.display = 'block';
+        continueBtn.style.display = 'block';
+        continueBtn.textContent = 'RESTART';
+        
+        menuBtn.onclick = () => {
+            modal.style.display = 'none';
+            backToMenu();
+        };
+        
+        continueBtn.onclick = () => {
+            modal.style.display = 'none';
+            // Restart the current level
+            restartLevel();
+        };
+    } else {
+        // Change countdown from 3 to 1 second
+        let countdown = 1;
+        modalText.textContent = `${message}\n\nNext round in: ${countdown}`;
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            modalText.textContent = `${message}\n\nNext round in: ${countdown}`;
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                modal.style.display = 'none';
+                restartGame();
+            }
+        }, 1000);
+    }
 }
 
 function checkCollision(boy, obj) {
@@ -113,18 +134,13 @@ function checkCollision(boy, obj) {
         
         let message;
         if (obj === book) {
-            score += powerUpActive ? 2 : 1;
-            message = `LEVEL COMPLETE!\nSCORE: ${score}\nPOWER-UP BONUS: ${powerUpActive ? '+1' : '0'}`;
-            guard_speed += 3;
-            boy_speed += 4;
+            score += 1; // Simplified scoring - just add 1 point
+            message = `POINT SCORED!\nSCORE: ${score}`;
+            guard_speed += 4;
+            boy_speed += 1;
             points_counter += 1;
         } else {
             message = `GAME OVER\nFINAL SCORE: ${score}`;
-            guard_speed = inital_speed;
-            boy_speed = inital_speed;
-            points_counter = 1;
-            score = 0;
-            gameAudio.currentTime = 0;
             gameAudio.pause();
         }
         showModal(message, obj !== book);
@@ -132,15 +148,6 @@ function checkCollision(boy, obj) {
 }
 
 function moveBoy(event) {
-    if (event.keyCode === 32) { // Spacebar for dash
-        dash();
-        return;
-    }
-    if (event.keyCode === 16) { // Shift for power-up
-        activatePowerUp();
-        return;
-    }
-    
     // Handle movement keys
     switch (event.keyCode) {
         case 37: // left arrow
@@ -284,27 +291,33 @@ function onRectangleClick(number) {
     switch(number){
         case '1':
             var gameAudioName = "res/audios/stealthebook_strengthboost_20230125T151332.mp3"
-            var speed = 10  // Doubled from 5
+            var speed = 10
             break;
         case '2':
             var gameAudioName = "res/audios/stealthebook_strategicsomersaults_20230125T153403.mp3"
-            var speed = 12  // Doubled from 6
+            var speed = 12
             break;
         case '3':
             var gameAudioName = "res/audios/stealthebook_fastmode_20230125T153446.mp3"
-            var speed = 14  // Doubled from 7
+            var speed = 14
             break;
         case '4':
             var gameAudioName = "res/audios/stealthebook_runningthroughexplosions_20230125T153537.mp3"
-            var speed = 16  // Doubled from 8
+            var speed = 16
             break;
     }
     
     gameAudio = new Audio(gameAudioName);
     inital_speed = speed;
     boy_speed = speed;
-    guard_speed = speed * 0.8; // Guard stays at 80% of boy's speed
+    guard_speed = speed * 0.9; // Increased from 0.8 to 0.9 to make guard faster
     points_counter = 0;
+    
+    // Add event listener for when song ends
+    gameAudio.addEventListener('ended', () => {
+        // Game completed successfully
+        showModal(`LEVEL COMPLETE!\nFinal Score: ${score}`, true);
+    });
     
     // Start autonomous guard movement
     setInterval(moveGuard, 45);
@@ -320,44 +333,20 @@ function showLevels(){
   levels.style.display = "block";
 }
 
-// Add these new functions
-function activatePowerUp() {
-    if (powerUpActive) return;
-    powerUpActive = true;
-    let originalSpeed = boy_speed;
-    boy_speed *= 1.5;
+// Add new function to restart the current level
+function restartLevel() {
+    // Reset game state
+    score = 0;
+    points_counter = 0;
+    boy_speed = inital_speed;
+    guard_speed = inital_speed * 0.9;
     
-    // Visual feedback
-    boy.style.boxShadow = "0 0 10px #00ff00";
+    // Reset audio
+    gameAudio.currentTime = 0;
     
-    powerUpTimer = setTimeout(() => {
-        powerUpActive = false;
-        boy_speed = originalSpeed;
-        boy.style.boxShadow = "none";
-    }, 3000);
-}
-
-function dash() {
-    if (!dashAvailable || !boyIsMoving) return;
+    // Reset positions and start game
+    restartGame();
     
-    dashAvailable = false;
-    let dashDistance = 150;
-    
-    // Dash in the last pressed direction
-    if (keys[37]) boy.style.left = (boy.offsetLeft - dashDistance) + "px"; // left
-    if (keys[38]) boy.style.top = (boy.offsetTop - dashDistance) + "px";   // up
-    if (keys[39]) boy.style.left = (boy.offsetLeft + dashDistance) + "px"; // right
-    if (keys[40]) boy.style.top = (boy.offsetTop + dashDistance) + "px";   // down
-    
-    // Visual feedback
-    boy.style.boxShadow = "0 0 20px #ff0000";
-    
-    setTimeout(() => {
-        boy.style.boxShadow = "none";
-    }, 200);
-    
-    // Cooldown
-    dashCooldown = setTimeout(() => {
-        dashAvailable = true;
-    }, 2000);
+    // Start the music again
+    gameAudio.play();
 }
