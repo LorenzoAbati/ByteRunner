@@ -1,0 +1,17 @@
+fix sixe of the book depending on level difficulty 
+
+structure levels and level goals 
+
+check difficulty
+
+fix the problem of the commands blocking when multiple keys are pressed, the player needs to press them again 
+
+fix the fact that now the game is too easy 
+
+pensa a dinamiche fighe come il fatto che come sfondo di un match (per esempio di una modalita free roaming o random) possa cambiare la difficolta o il comportamento del gioco in base alla struttura dell'immagine, come per esempio media colore o la posizione specifica di alcuni elementi dell'immagine che previene il player di andare li ecc. per queste cose non sembra sia necessario gen again, pensare altre feature cool con gen ai 
+
+enter press automatically clicks continue when point is scored
+
+online mode che permette a due giocatori di giocare uno contro l'altro, uno difende e l'altro attacca
+
+sarebbe figo sbloccare delle abilita particolari durante il gioco, come il teletrasporto nelle pareti (che adesso ce gia di default) ma non troppe penso che la semplicita sia un asset, non voglio che sia the binding of isaac cyberpunk theme

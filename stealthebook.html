@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Steal the Book</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+  <body id="bg-image">
+    <div id="start_button_container" style="text-align:center">
+      <img src="res/images/play.png" alt="Start Game" class="start_label" onclick="showLevels()">
+      <br>
+      <label class="arcade">START GAME</label>
+    </div>
+    <h1 id="levels_title" class="arcade">SELECT LEVEL</h1>
+    <div id="levels" class="row" style="display: none;">
+      <div class="container">
+        <div class="rectangle" onclick="onRectangleClick('1')">
+          <img class="image" src="res/images/level_1.png" alt="Image 1">
+          <div class="title">君はどうでしょう</div>
+        </div>
+      </div>
+      <div class="container">
+        <div class="rectangle" onclick="onRectangleClick('2')">
+          <img class="image" src="res/images/level_2.png" alt="Image 1">
+          <div class="title">中くらい</div>
+        </div>
+      </div>
+      <div class="container">
+        <div class="rectangle" onclick="onRectangleClick('3')">
+          <img class="image" src="res/images/level_3.png" alt="Image 1">
+          <div class="title">コクニルバブバ</div>
+        </div>
+      </div>
+      <div class="container">
+        <div class="rectangle" onclick="onRectangleClick('4')">
+          <img class="image" src="res/images/level_4.png" alt="Image 1">
+          <div class="title">こんにちは世界</div>
+        </div>
+      </div>
+    </div>
+    <div id="game">
+      <div id="boy"></div>
+      <div id="guard"></div>
+      <div id="book"></div>
+    </div>
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <p class="modal-text" id="modalText"></p>
+            <div class="modal-buttons">
+                <button class="modal-button" id="modalContinue">CONTINUE</button>
+                <button class="modal-button" id="modalMenu">MENU</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
