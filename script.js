@@ -22,10 +22,14 @@ setRandomPosition(book);
 let direction = { x: 0, y: 0 };
 let keys = {};
 
+// Add at the top with other initial variables
+let unlockedLevels = ['1']; // Start with only level 1 unlocked
+const POINTS_TO_WIN = 4;
+
 function setRandomPosition(element, minDistanceFromBoy = 0) {
     let validPosition = false;
     let randomNumberHeight, randomNumberWidth;
-    const safeDistance = 100; // Minimum 100px distance between characters
+    const minDistance = (element === guard) ? 400 : 200; // Guard must be at least 400px away
 
     while (!validPosition) {
         // Keep positions within screen boundaries with padding
@@ -54,7 +58,10 @@ function setRandomPosition(element, minDistanceFromBoy = 0) {
                 );
             }
 
-            validPosition = distance >= safeDistance && guardDistance >= safeDistance;
+            // Enforce minimum distances
+            validPosition = (element === guard) ? 
+                          distance >= 400 :  // Guard must be far from boy
+                          (distance >= 200 && guardDistance >= 200); // Book must be away from both
         }
     }
 
@@ -136,7 +143,7 @@ function checkCollision(boy, obj) {
         if (obj === book) {
             score += 1; // Simplified scoring - just add 1 point
             message = `POINT SCORED!\nSCORE: ${score}`;
-            guard_speed += 4;
+            guard_speed += 2;
             boy_speed += 1;
             points_counter += 1;
         } else {
@@ -278,6 +285,12 @@ function backToMenu(){
 }
 
 function onRectangleClick(number) {
+    // Check if level is unlocked
+    if (!unlockedLevels.includes(number)) {
+        showModal("Complete the previous level first!", true);
+        return;
+    }
+
     document.getElementById("levels").style.display = 'none';
     document.getElementById("game").style.display = 'block';
     document.getElementById("levels_title").style.display = 'none';
@@ -310,43 +323,68 @@ function onRectangleClick(number) {
     gameAudio = new Audio(gameAudioName);
     inital_speed = speed;
     boy_speed = speed;
-    guard_speed = speed * 0.9; // Increased from 0.8 to 0.9 to make guard faster
+    guard_speed = speed * 0.9;
     points_counter = 0;
+    score = 0;
     
     // Add event listener for when song ends
     gameAudio.addEventListener('ended', () => {
-        // Game completed successfully
-        showModal(`LEVEL COMPLETE!\nFinal Score: ${score}`, true);
+        // Stop all intervals immediately
+        let intervals = window.setInterval(() => {}, 100000);
+        for(let i = 0; i <= intervals; i++) {
+            window.clearInterval(i);
+        }
+        
+        // Remove movement controls
+        document.removeEventListener("keydown", moveBoy);
+        document.removeEventListener("keyup", stopBoy);
+        
+        if (score >= POINTS_TO_WIN) {
+            // Unlock next level if it exists
+            const nextLevel = (parseInt(number) + 1).toString();
+            if (nextLevel <= '4' && !unlockedLevels.includes(nextLevel)) {
+                unlockedLevels.push(nextLevel);
+            }
+            showModal(`LEVEL COMPLETE!\nFinal Score: ${score}\nNext level unlocked!`, true);
+        } else {
+            showModal(`Level Failed!\nYou need at least ${POINTS_TO_WIN} points to complete the level.\nFinal Score: ${score}`, true);
+        }
     });
     
-    // Start autonomous guard movement
     setInterval(moveGuard, 45);
     setInterval(updateBoyPosition, 16);
+    gameAudio.play();
 }
 
 function showLevels(){
-  var levels = document.getElementById("levels");
-  document.getElementById("start_button_container").style.display = 'none';
-  backToMenu();
-  document.getElementById("levels_title").style.display = 'block';
-  
-  levels.style.display = "block";
+    var levels = document.getElementById("levels");
+    document.getElementById("start_button_container").style.display = 'none';
+    backToMenu();
+    document.getElementById("levels_title").style.display = 'block';
+    
+    // Update level rectangles to show locked/unlocked status
+    for (let i = 1; i <= 4; i++) {
+        const levelRect = document.getElementById(`rectangle${i}`);
+        if (unlockedLevels.includes(i.toString())) {
+            levelRect.style.opacity = "1";
+            levelRect.style.cursor = "pointer";
+        } else {
+            levelRect.style.opacity = "0.5";
+            levelRect.style.cursor = "not-allowed";
+        }
+    }
+    
+    levels.style.display = "block";
 }
 
-// Add new function to restart the current level
+// Update restartLevel to reset score
 function restartLevel() {
-    // Reset game state
     score = 0;
     points_counter = 0;
     boy_speed = inital_speed;
     guard_speed = inital_speed * 0.9;
     
-    // Reset audio
     gameAudio.currentTime = 0;
-    
-    // Reset positions and start game
     restartGame();
-    
-    // Start the music again
     gameAudio.play();
 }
